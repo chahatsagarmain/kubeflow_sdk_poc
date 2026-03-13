@@ -8,6 +8,17 @@ The purpose of this Proof of Concept (PoC) is to demonstrate how to seamlessly i
 3. **Subprocess Tracing**: Allowing the subprocess to extract this context and attach its own granular spans (e.g., downloading datasets, training, exporting) as children of the original SDK span.
 4. **Exporting**: Sending all generated spans from both processes to a local backend (Jaeger) for visualization.
 
+## Trace Flow
+
+To achieve a single, unbroken trace across process boundaries, the PoC relies on the following flow:
+
+1. **SDK Initialization**: The user script `examples/main.py` initializes a global tracer and starts the root span (`SDK.UserScript`).
+2. **TrainerClient Spans**: As the mock `TrainerClient` prepares the job, it creates child spans (e.g., `TrainerClient.validate_job`, `TrainerClient.prepare_payload`) under the active trace context.
+3. **Context Injection**: Before launching the worker subprocess, the SDK extracts the active OpenTelemetry context (incorporating the current Trace ID and Span ID) and injects it into standard environment variables (such as `TRACEPARENT`, `TRACESTATE`) following the W3C Trace Context specifications.
+4. **Subprocess Execution**: The worker is spawned with this expanded environment dictionary.
+5. **Worker Extraction & Spans**: The `worker/worker.py` script starts, reads the `TRACEPARENT` from its environment, and rehydrates the OpenTelemetry context. All subsequent work it performs (like downloading datasets, training models) is recorded as child spans strictly under the specific SDK span that launched the worker.
+6. **Unified Exporting**: Both the SDK process and the worker process independently export their generated telemetry data to the Jaeger backend. Because they share the identical Trace ID, Jaeger can visually reconstitute them into a single chronological trace.
+
 ## Component Structure
 
 - `kubeflow/common/telemetry.py`: Acts as the centralized telemetry setup block. It encapsulates tracer initialization, OTLP exporters setup, and logic to inject/extract context. This mocks the logic that would eventually live in `kubeflow/common/telemetry/`.
@@ -56,3 +67,5 @@ The purpose of this Proof of Concept (PoC) is to demonstrate how to seamlessly i
    3. Click **Find Traces**.
    4. You will see a detailed trace that visually connects the operations in `main.py` -> `trainer_client.py` -> `worker.py`, proving that context successfully crossed the process boundary. 
    5. You can click into the trace and individually expand the spans to see custom events and metadata attributes (such as `model.loss`, `job.name`, `dataset.source`, etc.) that were attached in earlier steps.
+
+![Jaeger Distributed Trace](./jaeger_trace.png)
