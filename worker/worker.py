@@ -1,7 +1,12 @@
 import os
 import sys
 import time
-from telemetry import setup_telemetry, get_tracer, extract_context_from_env
+
+# Add root directory to sys.path to allow importing kubeflow modules
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, root_dir)
+
+from kubeflow.common.telemetry import setup_telemetry, get_tracer, extract_context_from_env
 from opentelemetry import trace
 
 # Setup telemetry for worker subprocess

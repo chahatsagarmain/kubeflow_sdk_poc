@@ -1,7 +1,7 @@
 import os
 import sys
 import subprocess
-from telemetry import get_tracer, get_context_env
+from kubeflow.common.telemetry import get_tracer, get_context_env
 
 tracer = get_tracer(__name__)
 
@@ -37,7 +37,8 @@ class TrainerClient:
             span.add_event("Subprocess Start")
             
             # Execute worker as a subprocess
-            worker_path = os.path.join(os.path.dirname(__file__), "worker.py")
+            root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            worker_path = os.path.join(root_dir, "worker", "worker.py")
             result = subprocess.run(
                 [sys.executable, worker_path, job_name], 
                 env=env, 

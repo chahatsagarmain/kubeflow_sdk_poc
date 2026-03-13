@@ -1,11 +1,12 @@
 import sys
 import os
 
-# Add the current directory to path if needed, so it can import telemetry
-sys.path.insert(0, os.path.dirname(__file__))
+# Add the root 'poc' directory to sys.path so we can import from kubeflow and worker
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, root_dir)
 
-from telemetry import setup_telemetry, get_tracer
-from trainer_client import TrainerClient
+from kubeflow.common.telemetry import setup_telemetry, get_tracer
+from kubeflow.sdk.trainer_client import TrainerClient
 from opentelemetry import trace
 import time
 
