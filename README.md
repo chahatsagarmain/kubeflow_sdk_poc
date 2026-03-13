@@ -9,7 +9,7 @@ The purpose of this Proof of Concept (PoC) is to demonstrate how to seamlessly i
 4. **Exporting**: Sending all generated spans from both processes to a local backend (Jaeger) for visualization.
 
 ## Trace Flow
-
+![Jaeger Distributed Trace](./jaeger_trace.png)
 To achieve a single, unbroken trace across process boundaries, the PoC relies on the following flow:
 
 1. **SDK Initialization**: The user script `examples/main.py` initializes a global tracer and starts the root span (`SDK.UserScript`).
@@ -68,4 +68,4 @@ To achieve a single, unbroken trace across process boundaries, the PoC relies on
    4. You will see a detailed trace that visually connects the operations in `main.py` -> `trainer_client.py` -> `worker.py`, proving that context successfully crossed the process boundary. 
    5. You can click into the trace and individually expand the spans to see custom events and metadata attributes (such as `model.loss`, `job.name`, `dataset.source`, etc.) that were attached in earlier steps.
 
-![Jaeger Distributed Trace](./jaeger_trace.png)
+
